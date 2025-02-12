@@ -14,6 +14,12 @@ async function insertEquipment ({
   )
 }
 
+async function getAllEquipment () {
+  const [results] = await conn.query('SELECT * FROM equipamento')
+  return results
+}
+
 export default {
-  insertEquipment
+  insertEquipment,
+  getAllEquipment
 }
