@@ -17,6 +17,14 @@ async function registerService ({
   )
 }
 
+async function markAsAnswered (requestId: number) {
+  await conn.query(
+    'UPDATE atendimento SET concluido = 1 WHERE solicitacao = ?;',
+    [requestId]
+  )
+}
+
 export default {
-  registerService
+  registerService,
+  markAsAnswered
 }

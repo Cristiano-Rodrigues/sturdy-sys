@@ -16,6 +16,13 @@ async function registerRequest ({
   return results[0]
 }
 
+async function markAskDone (requestId: number) {
+  await conn.query<any[]>(
+    'UPDATE solicitacao SET estado = \'done\' WHERE id = ?;',
+    [requestId]
+  )
+}
+
 async function registerEquipment ({
   requestId,
   equipmentId,
@@ -66,5 +73,6 @@ export default {
   registerRequest,
   registerEquipment,
   getAllRequests,
-  getUserRequests
+  getUserRequests,
+  markAskDone
 }

@@ -22,9 +22,17 @@ async function getFirstAvailableTechnician () {
   return results[0]
 }
 
+async function getTechnicianByRequest (requestId: number) {
+  const [results] = await conn.query<any[]>(
+    'SELECT tecnico_id FROM atendimento WHERE solicitacao = ?',
+    [requestId]
+  )
+  return results[0]
+}
+
 async function changeAvailability (technicianId: number | string) {
   await conn.query(
-    'UPDATE tecnico SET disponibilidade = NOT disponibilidade WHERE id = 1;',
+    'UPDATE tecnico SET disponibilidade = NOT disponibilidade WHERE id = ?;',
     [technicianId]
   )
 }
@@ -33,5 +41,6 @@ export default {
   getAllTechnician,
   insertTechnician,
   getFirstAvailableTechnician,
-  changeAvailability
+  changeAvailability,
+  getTechnicianByRequest
 }

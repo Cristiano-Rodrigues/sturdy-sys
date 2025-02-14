@@ -134,3 +134,27 @@ export async function GET (req: Request, res: Response) {
     }
   }
 }
+
+export async function PUT (req: Request, res: Response) {
+  const requestId = req.body.requestId
+
+  try {
+    await requestRep.markAskDone(requestId)
+    await serviceRep.markAsAnswered(requestId)
+    const technician = await technicianRep.getTechnicianByRequest(requestId)
+    await technicianRep.changeAvailability(technician.id)
+
+    return {
+      code: 200,
+      success: true,
+      message: 'Atendimento realizado com sucesso!'
+    }
+  } catch (error) {
+    console.error(error)
+    return {
+      code: 500,
+      success: false,
+      message: 'Erro na operação. Tente novamente mais tarde'
+    }
+  }
+}
