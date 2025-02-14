@@ -31,7 +31,40 @@ async function registerEquipment ({
   )
 }
 
+async function getAllRequests () {
+  const [results] = await conn.query<any[]>(
+    `
+      SELECT
+        s.id, s.data, s.estado, se.quantidade, e.nome, e.categoria, u.nome AS solicitante
+      FROM solicitacao AS s
+      JOIN solicitacao_equipamento AS se ON se.solicitacao_id = s.id
+      JOIN equipamento AS e ON se.equipamento_id = e.id
+      JOIN usuario AS u ON u.id = s.cliente_id
+      ORDER BY s.id;
+    `
+  )
+  return results
+}
+
+async function getUserRequests (id: number) {
+  const [results] = await conn.query<any[]>(
+    `
+      SELECT
+        s.id, s.data, s.estado, se.quantidade, e.nome, e.categoria, u.nome AS solicitante
+      FROM solicitacao AS s
+      JOIN solicitacao_equipamento AS se ON se.solicitacao_id = s.id
+      JOIN equipamento AS e ON se.equipamento_id = e.id
+      JOIN usuario AS u ON u.id = s.cliente_id
+      WHERE s.cliente_id = ?
+      ORDER BY s.id;
+    `, [id]
+  )
+  return results
+}
+
 export default {
   registerRequest,
-  registerEquipment
+  registerEquipment,
+  getAllRequests,
+  getUserRequests
 }

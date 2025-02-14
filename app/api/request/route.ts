@@ -118,3 +118,19 @@ export async function POST (req: Request, res: Response) {
     message: "Dados inseridos com sucesso!"
   }
 }
+
+export async function GET (req: Request, res: Response) {
+  try {
+    const data = await requestRep.getAllRequests()
+
+    return {
+      success: true,
+      data
+    }
+  } catch (error) {
+    return {
+      success: false,
+      message: 'Algo correu mal ao pegar os dados das solicitações'
+    }
+  }
+}
