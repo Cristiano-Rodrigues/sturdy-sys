@@ -42,6 +42,7 @@ export async function POST (req: Request, res: Response) {
     return {
       success: true,
       user: {
+        id: userData.id,
         name: userData.nome,
         email: auth.email,
         permission: userData.permissao

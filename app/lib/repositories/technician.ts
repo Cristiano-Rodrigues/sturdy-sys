@@ -17,7 +17,21 @@ async function getAllTechnician () {
   return results
 }
 
+async function getFirstAvailableTechnician () {
+  const [results] = await conn.query<any[]>('SELECT * FROM tecnico WHERE disponibilidade = 1')
+  return results[0]
+}
+
+async function changeAvailability (technicianId: number | string) {
+  await conn.query(
+    'UPDATE tecnico SET disponibilidade = NOT disponibilidade WHERE id = 1;',
+    [technicianId]
+  )
+}
+
 export default {
   getAllTechnician,
-  insertTechnician
+  insertTechnician,
+  getFirstAvailableTechnician,
+  changeAvailability
 }
