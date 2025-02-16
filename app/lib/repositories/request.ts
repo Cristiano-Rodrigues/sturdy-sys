@@ -23,6 +23,22 @@ async function markAskDone (requestId: number) {
   )
 }
 
+async function pickNextPendingRequest () {
+  await conn.query<any[]>(
+    `
+      DROP TEMPORARY TABLE IF EXISTS temp;
+      CREATE TEMPORARY TABLE temp
+      SELECT id FROM solicitacao WHERE estado = 'pending' ORDER BY data LIMIT 1;
+      UPDATE solicitacao AS s
+      SET estado = 'in progress'
+      WHERE s.id IN (SELECT * FROM temp)
+      ;
+    `
+  )
+  const [results] = await conn.query<any[]>('SELECT * FROM temp;')
+  return results[0]
+}
+
 async function registerEquipment ({
   requestId,
   equipmentId,
@@ -93,6 +109,7 @@ async function countPending () {
 
 export default {
   getPendingRequests,
+  pickNextPendingRequest,
   registerRequest,
   registerEquipment,
   getAllRequests,

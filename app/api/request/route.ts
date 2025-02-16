@@ -131,12 +131,24 @@ export async function GET (req: Request, res: Response) {
 
 export async function PUT (req: Request, res: Response) {
   const requestId = req.body.requestId
+  const currDate = new Date
 
   try {
     await requestRep.markAskDone(requestId)
     await serviceRep.markAsAnswered(requestId)
     const technician = await technicianRep.getTechnicianByRequest(requestId)
-    await technicianRep.changeAvailability(technician.tecnico_id)
+    const nextRequest = await requestRep.pickNextPendingRequest()
+
+    if (nextRequest) {
+      await serviceRep.registerService({
+        technicianId: technician.tecnico_id,
+        requestId: nextRequest.id,
+        currDate,
+        concluded: 0
+      })
+    } else {
+      await technicianRep.changeAvailability(technician.tecnico_id)
+    }
 
     return {
       code: 200,
