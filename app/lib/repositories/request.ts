@@ -69,10 +69,35 @@ async function getUserRequests (id: number) {
   return results
 }
 
+async function getPendingRequests () {
+  const [results] = await conn.query<any[]>(
+    `
+      SELECT s.id, s.data, s.estado, u.nome AS solicitante
+      FROM solicitacao AS s
+      JOIN usuario AS u ON s.cliente_id = u.id
+      WHERE s.estado = 'pending';
+    `
+  )
+  return results
+}
+
+async function count () {
+  const [results] = await conn.query<any[]>('SELECT COUNT(*) AS amount FROM solicitacao')
+  return results[0]
+}
+
+async function countPending () {
+  const [results] = await conn.query<any[]>('SELECT COUNT(*) AS amount FROM solicitacao WHERE estado = \'pending\'')
+  return results[0]
+}
+
 export default {
+  getPendingRequests,
   registerRequest,
   registerEquipment,
   getAllRequests,
   getUserRequests,
-  markAskDone
+  markAskDone,
+  countPending,
+  count
 }

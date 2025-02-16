@@ -31,9 +31,26 @@ async function getEquipmentById (id: number) {
   return results[0]
 }
 
+async function count () {
+  const [results] = await conn.query<any[]>('SELECT COUNT(*) AS amount FROM equipamento')
+  return results[0]
+}
+
+async function getLowStockEquipment () {
+  const [results] = await conn.query(
+  `
+    SELECT nome AS name, quantidade_stock AS amount
+    FROM equipamento
+    WHERE quantidade_stock <= 10;
+  `)
+  return results
+}
+
 export default {
+  getLowStockEquipment,
   insertEquipment,
   getAllEquipment,
   getEquipmentById,
-  reduceAmount
+  reduceAmount,
+  count
 }

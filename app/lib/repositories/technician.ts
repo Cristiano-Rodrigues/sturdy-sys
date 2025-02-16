@@ -30,11 +30,31 @@ async function getTechnicianByRequest (requestId: number) {
   return results[0]
 }
 
+async function getBusyTechnicians () {
+  const [results] = await conn.query<any[]>(
+    `
+      SELECT
+        t.id, t.nome AS name, a.solicitacao AS request
+      FROM tecnico AS t
+      JOIN atendimento AS a ON a.tecnico_id = t.id
+      WHERE t.disponibilidade = 0 AND a.concluido = 0;
+    `,
+  )
+  return results
+}
+
 async function changeAvailability (technicianId: number | string) {
   await conn.query(
-    'UPDATE tecnico SET disponibilidade = NOT disponibilidade WHERE id = ?;',
+    'UPDATE tecnico SET disponibilidade = (NOT disponibilidade) WHERE id = ?;',
     [technicianId]
   )
+}
+
+async function count () {
+  const [results] = await conn.query<any[]>(
+    'SELECT COUNT(*) AS amount FROM tecnico'
+  )
+  return results[0]
 }
 
 export default {
@@ -42,5 +62,7 @@ export default {
   insertTechnician,
   getFirstAvailableTechnician,
   changeAvailability,
-  getTechnicianByRequest
+  getTechnicianByRequest,
+  getBusyTechnicians,
+  count
 }

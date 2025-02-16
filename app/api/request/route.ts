@@ -17,8 +17,9 @@ export async function POST (req: Request, res: Response) {
     userId: z.number(),
     items: z.array(z.object({
       id: z.number(),
+      name: z.string(),
       amount: z.number()
-    }))
+    })).nonempty()
   })
 
   const result = Request.safeParse(request)
@@ -27,7 +28,7 @@ export async function POST (req: Request, res: Response) {
     return {
       code: 400,
       success: false,
-      errorMessage: 'Os dados inseridos estão incorrectos!'
+      message: 'Os dados inseridos estão incorrectos!'
     }
   }
 
@@ -36,24 +37,21 @@ export async function POST (req: Request, res: Response) {
     
     let state: State = availableTechnician ? 'in progress' : 'pending'
 
-    const areProductsAvailable = await (new Promise(async (resolve, reject) => {
+    await (new Promise(async (resolve, reject) => {
       for (const item of request.items) {
         const itemData = await equipmentRep.getEquipmentById(item.id)
 
-        if (itemData.quantidade < item.amount) {
-          reject(false)
+        if (itemData.quantidade_stock < item.amount) {
+          reject({
+            code: 400,
+            sucess: false,
+            message: `O equipamento ${item.name} não possui quantidade suficiente`
+          })
         }
       }
       resolve(true)
     }))
 
-    if (!areProductsAvailable) {
-      return {
-        code: 400,
-        message: 'Algum produto que requisitou não tem em quantidade suficiente'
-      }
-    }
-    
     const currDate = new Date()
     const requestData = {
       currDate,
@@ -63,7 +61,7 @@ export async function POST (req: Request, res: Response) {
 
     const { insertId } = await requestRep.registerRequest(requestData)
 
-    const areAllEquipmentsRegistered = await (new Promise(async (resolve, reject) => {
+    await (new Promise(async (resolve, reject) => {
       for (const item of request.items) {
         try {
           await requestRep.registerEquipment({
@@ -75,13 +73,6 @@ export async function POST (req: Request, res: Response) {
       }
       resolve(true)
     }))
-
-    if (!areAllEquipmentsRegistered) {
-      return {
-        code: 400,
-        message: 'Erro ao registar os produtos solicitados. Tente mais tarde.'
-      }
-    }
 
     await (new Promise(async (resolve, reject) => {
       for (const item of request.items) {
@@ -103,8 +94,11 @@ export async function POST (req: Request, res: Response) {
       })
       await technicianRep.changeAvailability(technicianId)
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error(error)
+    if (error.code < 500) {
+      return error
+    }
     return {
       success: false,
       code: 500,
@@ -142,15 +136,18 @@ export async function PUT (req: Request, res: Response) {
     await requestRep.markAskDone(requestId)
     await serviceRep.markAsAnswered(requestId)
     const technician = await technicianRep.getTechnicianByRequest(requestId)
-    await technicianRep.changeAvailability(technician.id)
+    await technicianRep.changeAvailability(technician.tecnico_id)
 
     return {
       code: 200,
       success: true,
       message: 'Atendimento realizado com sucesso!'
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error(error)
+    if (error.code < 500) {
+      return error
+    }
     return {
       code: 500,
       success: false,
